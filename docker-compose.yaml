@@ -1,0 +1,12 @@
+services: # 실행할 서비스 정의
+  postgres: # 서비스 이름 정의 
+    image: postgres:15 # 이미지 이름: 버전
+    restart: always # 서버 실행할때 마다 컨테이너 자동 재시작
+    volumes: # 도커 이미지 내에서 생성 및 실행된 파일들은 이미지 내에만 존재하므로, 도커 종료시 휘발 -> Host OS와 맵핑시켜 디스크에 저장
+      - ./postgres-data:/var/lib/postgresql/data # 현재 docker-compose.yml와 같은 경로의 /postgres-data와 디스크의 파일 경로와 맵핑
+    ports: # 이미지 내의 포트와 호스트의 포트를 맵핑
+      - "5432:5432"
+    environment: # 서비스 정보 입력
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qkrwnstj13@$
+      POSTGRES_DB: postgres
