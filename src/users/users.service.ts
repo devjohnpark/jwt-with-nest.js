@@ -31,17 +31,12 @@ export class UsersService {
       return user;
   }
 
-  async getUserByEmail(email: string, password: string) {
+  async getUserByEmail(email: string) {
     const user = await this.usersRepository.findOne({ // findOne은 비동기 함수이기 때문에, async 함수 반환시 await 해야됨 (Promise 타입의 함수 호출할때 await 안하면, null 값이 아니라 Promise { <pending> } 값 반환)
       where: {
-          email, // id(key)와 id(value)가 동일한 경우 (value 생략 가능)
-          password,
+          email, 
       }
-    });
-
-    if (!user) {
-        throw new NotFoundException(); // 404 not found data
-    }
+    }); 
 
     return user;
 };
@@ -58,48 +53,4 @@ export class UsersService {
 
       return newUser;
   }
-
-  // async updateUser(id: number,  name: string, age: number) {
-  //     // save 기능
-  //     // 1) 만약 기존의 데이터가 없다면, id 기준으로 새로 생성
-  //     // 2) 만약 데이터가 존재한다면 (같은 id의 값이 존재한다면), 존재하던 값을 업데이트
-  //     const user = await this.usersRepository.findOne({
-  //         where: {
-  //             id,
-  //         },
-  //     });
-
-  //     if (!user) {
-  //         throw new NotFoundException();
-  //     }
-
-  //     if (name) {
-  //         user.name = name;
-  //     }
-
-  //     if (age) {
-  //         user.age = age;
-  //     }
-
-  //     const newUser = await this.usersRepository.save(user); // findOne에서 DB 가져오므로 id 존재
-
-
-  //     return newUser;
-  // }
-
-  // async deleteUser(id: number) {
-  //     const user = await this.usersRepository.findOne({
-  //         where: {
-  //             id,
-  //         }
-  //     });
-
-  //     if(!user) {
-  //         throw new NotFoundException();
-  //     }
-
-  //     await this.usersRepository.delete(id);
-
-  //     return id;
-  // }
 }
