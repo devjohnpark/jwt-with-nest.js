@@ -54,7 +54,8 @@ export class AuthService {
     /** 
      * 1) signUp: 회원가입
      * - email, password과 함께 요청 받음
-     * - access/refresh token 생성 및 유저 생성
+     * - access/refresh token 생성
+     * - user 생성
      * - access/refresh token 응답 (retrieveToken)
      */
     async signUp(user: Pick<UsersModel, 'email' | 'password'>) {
@@ -64,7 +65,10 @@ export class AuthService {
             HASH_ROUND,
         );
 
-        const newUser = await this.userService.createUser(user);
+        const newUser = await this.userService.createUser({
+            ...user,
+            password: hash,
+        });
 
         return this.retrieveToken(newUser); 
     };
@@ -72,7 +76,8 @@ export class AuthService {
     /**
      * 2) signIn : 로그인
      * - email, password과 함께 요청 받고 검증
-     * - access/refresh token 생성 및 응답
+     * - access/refresh token 생성 
+     * - access/refresh token 응답 (retrieveToken)
      */
     async signIn(user: Pick<UsersModel, 'email' | 'password'>) {
         const existedUser = await this.verifyUserWithEmailAndPassword(user);
@@ -120,18 +125,18 @@ export class AuthService {
      * + password: hashing된 값 비교 
      */
     async verifyUserWithEmailAndPassword(user: Pick<UsersModel, 'email' | 'password'>) {
-        const existinguser = await this.userService.getUserByEmail(user.email);
-        if (!existinguser) {
+        const existingUser = await this.userService.getUserByEmail(user.email);
+        if (!existingUser) {
              throw new UnauthorizedException('Not existed user');
         }
 
-        const isPassed = await bcrypt.compare(user.password, existinguser.password);
+        const isPassed = await bcrypt.compare(user.password, existingUser.password);
         
         if(!isPassed) {
             throw new UnauthorizedException('The password is wronged');
         }
 
-        return existinguser;
+        return existingUser;
     };  
 }
 
