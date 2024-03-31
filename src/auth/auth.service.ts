@@ -75,7 +75,7 @@ export class AuthService {
 
     /**
      * 2) signIn : 로그인
-     * - email, password과 함께 요청 받고 검증
+     * - email, password과 함께 요청 받고 검증   
      * - access/refresh token 생성 
      * - access/refresh token 응답 (retrieveToken)
      */
@@ -126,6 +126,7 @@ export class AuthService {
      */
     async verifyUserWithEmailAndPassword(user: Pick<UsersModel, 'email' | 'password'>) {
         const existingUser = await this.userService.getUserByEmail(user.email);
+        
         if (!existingUser) {
              throw new UnauthorizedException('Not existed user');
         }

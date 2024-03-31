@@ -6,21 +6,21 @@ export class UsersModel {
     id: number;
 
     @Column({ 
-        length: 50,
+        length: 500,
         unique: true,
         nullable: false,
-    })   // make firstName unique, too; decide which to chose
+    })  
     email: string;
 
     @Column({
-        length: 50,
+        length: 500,
         nullable: false,
     })
     password: string;
 
-    @Column()
+    @Column({
+        length: 500,
+        nullable: true,
+    })
     name: string;
-
-    @Column()
-    age: number;
 }
