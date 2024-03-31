@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -41,16 +41,30 @@ export class UsersService {
     return user;
 };
 
-  async createUser(email: string, password: string) {
-      // 1) create -> 객체 생성 (TypeORM 호환 객체로 생성)
-      // 2) save -> DB에 객체 저장
-      const user = this.usersRepository.create({ // DB에 생성하는 것이 아니라 객체 생성이라 Synchronous로 생성, create 타입 체크 자동
-          email, 
-          password,
-      });
 
-      const newUser = await this.usersRepository.save(user);
+/**
+ * createUser
+ * 1) email 중복 확인
+ * 2) create -> 객체 생성 (TypeORM 호환 객체로 생성)
+ * 3) save -> DB에 객체 저장
+*/
+async createUser(user: Pick<UsersModel, 'email' | 'password'>) {
+    const existingEmail = await this.usersRepository.findOne({
+      where: {
+        email: user.email,
+      }
+    });
 
-      return newUser;
+    if (existingEmail) { throw new BadRequestException('Already existing email'); }
+
+    const createdUser = this.usersRepository.create({ // DB에 생성하는 것이 아니라 객체 생성이라 Synchronous로 생성, create 타입 체크 자동
+      email: user.email, 
+      password: user.password,
+    });
+
+    const newUser = await this.usersRepository.save(createdUser);
+
+    return newUser;
   }
 }
+ 

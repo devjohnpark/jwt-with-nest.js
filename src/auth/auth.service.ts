@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { BlobOptions } from 'buffer';
 import { UsersModel } from 'src/users/entities/user.entity';
-import { JWT_SECRET } from './const/auth.const';
+import { HASH_ROUND, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
  
@@ -49,6 +49,25 @@ export class AuthService {
      * 9) refresh token 재발급 (7 과정에서 refresh token도 만료)
      * - refresh token도 만료되었다면, refresh token 재발급 요청 받은 후 생성 및 반환
      */
+
+
+    /** 
+     * 1) signUp: 회원가입
+     * - email, password과 함께 요청 받음
+     * - access/refresh token 생성 및 유저 생성
+     * - access/refresh token 응답 (retrieveToken)
+     */
+    async signUp(user: Pick<UsersModel, 'email' | 'password'>) {
+        // bcrypt.hash : sault 자동 생성
+        const hash = await bcrypt.hash(
+            user.password,
+            HASH_ROUND,
+        );
+
+        const newUser = await this.userService.createUser(user);
+
+        return this.retrieveToken(newUser); 
+    };
 
     /**
      * 2) signIn : 로그인
@@ -101,18 +120,18 @@ export class AuthService {
      * + password: hashing된 값 비교 
      */
     async verifyUserWithEmailAndPassword(user: Pick<UsersModel, 'email' | 'password'>) {
-        const existeduser = await this.userService.getUserByEmail(user.email);
-        if (!existeduser) {
+        const existinguser = await this.userService.getUserByEmail(user.email);
+        if (!existinguser) {
              throw new UnauthorizedException('Not existed user');
         }
 
-        const isPassed = await bcrypt.compare(user.password, existeduser.password);
+        const isPassed = await bcrypt.compare(user.password, existinguser.password);
         
         if(!isPassed) {
             throw new UnauthorizedException('The password is wronged');
         }
 
-        return existeduser;
+        return existinguser;
     };  
 }
 

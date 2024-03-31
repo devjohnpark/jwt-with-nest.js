@@ -10,7 +10,7 @@ import { UsersModule } from 'src/users/users.module';
     JwtModule.register({}), // JWT Module Imports
     UsersModule,
   ],
-  controllers: [AuthController],
+    controllers: [AuthController],
   providers: [AuthService],  
 })
 export class AuthModule {}
