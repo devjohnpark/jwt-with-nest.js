@@ -39,7 +39,7 @@ export class AuthService {
      * - 사용자 데이터 반환
      *  
      * 7) verifyToken
-     * - access token와 refresh toekn 검증할때 필요한 옵션값으로 검증
+     * - access token와 refresh token 검증할때 필요한 옵션값으로 검증
      * 
      * 8) access token 재발급
      * - access token 검증 후 유효기간 만료시, 기한 만료 401 반환
@@ -64,7 +64,7 @@ export class AuthService {
             user.password,
             HASH_ROUND,
         );
-
+         
         const newUser = await this.userService.createUser({
             ...user,
             password: hash,
@@ -97,7 +97,7 @@ export class AuthService {
             sub: user.id,
             type: isRefreshToken ? 'refresh' : 'access',
          };
-
+        
          return this.jwtService.sign(Payload, {
             secret: JWT_SECRET,
             expiresIn: isRefreshToken ? 3600 : 360,
@@ -126,7 +126,7 @@ export class AuthService {
      */
     async verifyUserWithEmailAndPassword(user: Pick<UsersModel, 'email' | 'password'>) {
         const existingUser = await this.userService.getUserByEmail(user.email);
-        
+
         if (!existingUser) {
              throw new UnauthorizedException('Not existed user');
         }
@@ -139,5 +139,45 @@ export class AuthService {
 
         return existingUser;
     };  
+
+    /**
+     * takeTokenFromHeader
+     * 요청시, header에 token 존재
+     * { authorization: 'Basic { token }' } // email과 password를 Base64로 인코딩한 형태 (토큰 발급 전 혹은 삭제 이후)
+     * { authorization: 'Bearer { token }' } // 발급된 token (토큰 발급 이후)
+     * 
+     * 위의 header의 token을 디코딩하여 검증 
+     */
+    takeTokenFromHeader(header: string, isBaerer: boolean) {
+        const splitToken = header.split(' '); // Basic과 token 분리
+        const prefix = isBaerer ? 'Bearer' : 'Basic';
+        if (splitToken.length !== 2 || splitToken[0] !== prefix) {
+            throw new UnauthorizedException('The token is wronged'); 
+        }
+        const token = splitToken[1];
+        return token; 
+    }
+
+    /**
+     * decodeBasicToken
+     * Base64 encoding된 토큰을 decode 후, utf-8 포멧으로 string으로 encoding
+     * email, password을 split으로 가져온 후에 반환
+     */
+
+    decodeBasicToken(base64String: string) {
+        // email:password을 base64로 utf-8 형식으로 encoding하면 dXNlcjEwQGVtYWlsLmNvbToxMjM0MTIzNA== 같은 값이 나옴
+        // 아래와 같이 decode하면 email:password로 디코딩된 상태값으로 변환됨
+        const decoded = Buffer.from(base64String, 'base64').toString('utf-8');
+        const split = decoded.split(':'); // email:password -> [email, password]
+        if (split.length !== 2) {
+           throw new UnauthorizedException('The token is wronged'); 
+        }
+        const email = split[0];
+        const password = split[1];
+        return {
+            email,
+            password,
+        }
+    };
 }
 
